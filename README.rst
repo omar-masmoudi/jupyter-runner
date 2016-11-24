@@ -176,4 +176,4 @@ Setting ``--allow-errors`` option allows to ignore the error and continue the ex
 
 .. code-block:: console
 
-    jupyter-run --allow-errors
+    jupyter-run --allow-errors notebook.ipynb
