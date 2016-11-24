@@ -5,6 +5,13 @@ Jupyter runners allows to run **multiple notebooks** over **multiple sets of par
 
 Notebook execution can happen in parallel with a fixed number of workers.
 
+Installation
+============
+
+.. code-block:: console
+
+    pip install jupyter-runner
+
 Usage
 =====
 
