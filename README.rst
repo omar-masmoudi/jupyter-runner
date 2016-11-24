@@ -30,7 +30,8 @@ Usage
         --debug                                Enable debug logs
         --help                                 Display this help
         --version                              Display version
-
+        --timeout=<TIMEOUT>                    Cell execution timeout in seconds.  [Default: -1]
+        --allow-errors                         Allow errors during notebook execution.
 
 
 Tutorial
@@ -141,3 +142,38 @@ https://nbconvert.readthedocs.io/en/latest/usage.html#default-output-format-html
 .. code-block:: console
 
     jupyter-run --format notebook --output-directory results notebook.ipynb
+
+Change output file suffix
+-------------------------
+When multiple notebooks are run with a list of parameters, output filenames are suffixed by ``_1``, ``_2``, ...
+This default can be overriden by setting parameter JUPYTER_OUTPUT_SUFFIX in parameter set.
+
+Example ``my_parameter_file``:
+::
+
+    VAR1=VAL1 VAR2=VAL2 VAR3=VAL3 JUPYTER_OUTPUT_SUFFIX=AAA
+    VAR1=VAL5 VAR2=VAL18 VAR3='VAL42 with space' JUPYTER_OUTPUT_SUFFIX=BBB
+
+.. code-block:: console
+
+    jupyter-run --parameter-file=my_parameter_file notebook.ipynb
+
+This run will generate two files: ``notebook_AAA.html`` and ``notebook_BBB.html``
+
+Change cell execution timeout
+-----------------------------
+By default, timeout is set to -1, meaning infinite.
+It is possible to set the cell execution timeout (in seconds) with ``--timeout``
+
+.. code-block:: console
+
+    jupyter-run --timeout 60 notebook.ipynb
+
+Allow error in notebook execution
+---------------------------------
+By default, errors in notebook execution stops its execution and return an error code.
+Setting ``--allow-errors`` option allows to ignore the error and continue the execution, returning a valid code.
+
+.. code-block:: console
+
+    jupyter-run --allow-errors

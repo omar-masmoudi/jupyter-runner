@@ -10,6 +10,8 @@ Usage: run_notebook.py [options] <notebook>...
     --output-directory=<OUTPUT_DIRECTORY>  Output directory  [Default: .]
     --overwrite  Overwrite output files if they already exist.
     --format=<FORMAT>  Output format: html, notebook...  [Default: html]
+    --timeout=<TIMEOUT>  Cell execution timeout in seconds.  [Default: -1]
+    --allow-errors  Allow errors during notebook execution.
     --debug  Enable debug logs
     --help  Display this help
     --version  Display version
@@ -74,7 +76,7 @@ def parse_parameter_file(filename):
 
 
 def execute_notebook(notebook_file, parameters, output_file, debug, overwrite,
-                     format):
+                     format, timeout, allow_errors):
     """
     Execute notebook and export output result file.
 
@@ -84,6 +86,8 @@ def execute_notebook(notebook_file, parameters, output_file, debug, overwrite,
     :param debug: Boolean enabling debug notebook execution.
     :param overwrite: Boolean overwriting
     :param format: String 'html' or 'ipynb'
+    :param timeout: Timeout in seconds
+    :param allow_errors: Boolean authorizing errors in notebook execution
     """
     in_place = False
     if exists(output_file):
@@ -98,23 +102,27 @@ def execute_notebook(notebook_file, parameters, output_file, debug, overwrite,
             os.remove(output_file)
 
     cmd = ['jupyter', 'nbconvert', '--execute',
+           '--ExecutePreprocessor.timeout=%s' % timeout,
            '--output', output_file,
            '--to', format]
     if debug:
         cmd.append('--debug')
     if in_place:
         cmd.append('--inplace')
+    if allow_errors:
+        cmd.append('--allow_errors')
     cmd.append(notebook_file)
     env = os.environ.update(parameters)
 
     LOGGER.info("Executing command: %s with parameters: %s" %
                 (' '.join(cmd), str(parameters)))
     ret = subprocess.call(cmd, env=env)
-    print("RETURN CODE IS: %s" % ret)
+
     return ret
 
 
-def get_tasks(parameter_file, notebooks, output_dir, debug, overwrite, format):
+def get_tasks(parameter_file, notebooks, output_dir, debug, overwrite, format,
+              timeout, allow_errors):
     """Return list of tasks to run based on parameters and notebooks.
 
     The number of tasks returned is:
@@ -125,15 +133,19 @@ def get_tasks(parameter_file, notebooks, output_dir, debug, overwrite, format):
     tasks = []
     for param_id, params in enumerate(parameters):
         for notebook in notebooks:
-            file_suffix = '' if parameter_file is None \
-                             else '_%d' % (param_id + 1)
+            if parameter_file is None:
+                file_suffix = ''
+            elif 'JUPYTER_OUTPUT_SUFFIX' in params:
+                file_suffix = '_%s' % params['JUPYTER_OUTPUT_SUFFIX']
+            else:
+                file_suffix = '_%d' % (param_id + 1)
             extension = '.%s' % format if format != 'notebook' else '.ipynb'
             output_name = '%s%s%s' % (splitext(basename(notebook))[0],
                                       file_suffix,
                                       extension)
             output_file = abspath(join(output_dir, output_name))
             tasks.append((notebook, params, output_file, debug, overwrite,
-                          format))
+                          format, timeout, allow_errors))
 
     for task_id, task in enumerate(tasks):
         LOGGER.debug('Task %d: %s' % (task_id + 1, str(task)))
@@ -161,11 +173,13 @@ def main():
     output_dir = args['--output-directory']
     overwrite = args['--overwrite']
     format = args['--format']
+    timeout = args['--timeout']
+    allow_errors = args['--allow-errors']
     if not exists(output_dir):
         os.makedirs(output_dir)
 
     tasks = get_tasks(parameter_file, notebooks, output_dir, debug, overwrite,
-                      format)
+                      format, timeout, allow_errors)
     ret_codes = []
     if workers > 1:
         with multiprocessing.Pool(workers) as pool:
