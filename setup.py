@@ -35,7 +35,7 @@ setup(
         [console_scripts]
         jupyter-run = jupyter_runner.run:main
     """,
-    install_requires=['docopt'],
+    install_requires=['docopt', 'jupyter'],
     classifiers=[
         'Programming Language :: Python :: 3.5',
     ],
