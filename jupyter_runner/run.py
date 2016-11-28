@@ -110,7 +110,7 @@ def execute_notebook(notebook_file, parameters, output_file, debug, overwrite,
     if in_place:
         cmd.append('--inplace')
     if allow_errors:
-        cmd.append('--allow_errors')
+        cmd.append('--allow-errors')
     cmd.append(notebook_file)
     env = os.environ.update(parameters)
 
