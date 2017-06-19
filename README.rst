@@ -17,7 +17,7 @@ Usage
 
 ::
 
-    jupyter-run [options] <notebook>...
+    jupyter-runner [options] <notebook>...
 
         --parameter-file=<PARAMETER_FILE>**    Optional parameters files containing one parameter instance by line, setting the environment.
         Example with 2 sets of 3 parameters:
@@ -42,7 +42,7 @@ Run a simple notebook
 
 .. code-block:: console
 
-    jupyter-run notebook.ipynb
+    jupyter-runner notebook.ipynb
 
 By default, the process creates output file `notebook.html` in current directory.
 
@@ -51,7 +51,7 @@ Run multiple notebooks
 
 .. code-block:: console
 
-    jupyter-run notebookA.ipynb notebookB.ipynb
+    jupyter-runner notebookA.ipynb notebookB.ipynb
 
 By default, the process creates output files `notebookA.html` and `notebookB.html` in current directory.
 
@@ -62,7 +62,7 @@ Use environment variables on command-line.
 
 .. code-block:: console
 
-    ENV_VAR=xxx jupyter-run notebook.ipynb
+    ENV_VAR=xxx jupyter-runner notebook.ipynb
 
 In python notebook, variables can be retrieved using ``os.environ``:
 
@@ -85,22 +85,22 @@ Example file containing 2 sets of 3 parameters:
     VAR1=VAL1 VAR2=VAL2 VAR3=VAL3
     VAR1=VAL5 VAR2=VAL18 VAR3='VAL42 with space'
 
-Then run jupyter-run specifying the path to ``my_parameter_file`` just created:
+Then run jupyter-runner specifying the path to ``my_parameter_file`` just created:
 
 .. code-block:: console
 
-    jupyter-run --parameter-file=my_parameter_file notebook.ipynb
+    jupyter-runner --parameter-file=my_parameter_file notebook.ipynb
 
 By default, the process creates output files `notebook_1.html` and `notebook_2.html` in current directory.
 
 Run multiple notebooks with multiple sets of parameters
 -------------------------------------------------------
-jupyter-run can combine multiple set of parameters on multiple notebooks.
+jupyter-runner can combine multiple set of parameters on multiple notebooks.
 When there are ``N`` sets of parameters running on ``M`` notebooks, there will be ``NxM`` distinct output files.
 
 .. code-block:: console
 
-    jupyter-run --parameter-file=my_parameter_file notebookA.ipynb notebookB.ipynb
+    jupyter-runner --parameter-file=my_parameter_file notebookA.ipynb notebookB.ipynb
 
 By default, the process creates output files `notebookA_1.html`, `notebookA_2.html`, `notebookB_1.html`, `notebookB_2.html` in current directory.
 
@@ -109,19 +109,19 @@ Change output directory
 
 .. code-block:: console
 
-    jupyter-run --output-directory results notebook.ipynb
+    jupyter-runner --output-directory results notebook.ipynb
 
 The process create output file ``results/notebook.html`.
 ``results`` directory is created if it does not pre-exist.
 
 Overwrite existing outputs
 --------------------------
-By default, jupyter-run skip the run when output file(s) already exists.
+By default, jupyter-runner skip the run when output file(s) already exists.
 To overwrite the files, use the ``--overwrite`` option:
 
 .. code-block:: console
 
-    jupyter-run --overwrite notebook.ipynb
+    jupyter-runner --overwrite notebook.ipynb
 
 Use multiple workers
 --------------------
@@ -130,7 +130,7 @@ Use ``--workers`` option to specify the number of notebooks to run in parallel.
 
 .. code-block:: console
 
-    jupyter-run --workers 3 --parameter-file=my_parameter_file notebookA.ipynb notebookB.ipynb
+    jupyter-runner --workers 3 --parameter-file=my_parameter_file notebookA.ipynb notebookB.ipynb
 
 The above command will start to run 3 notebook output over the 4 requested. When the first execution finishes, the 4th notebook is launched and so on.
 
@@ -141,7 +141,7 @@ https://nbconvert.readthedocs.io/en/latest/usage.html#default-output-format-html
 
 .. code-block:: console
 
-    jupyter-run --format notebook --output-directory results notebook.ipynb
+    jupyter-runner --format notebook --output-directory results notebook.ipynb
 
 Change output file suffix
 -------------------------
@@ -156,7 +156,7 @@ Example ``my_parameter_file``:
 
 .. code-block:: console
 
-    jupyter-run --parameter-file=my_parameter_file notebook.ipynb
+    jupyter-runner --parameter-file=my_parameter_file notebook.ipynb
 
 This run will generate two files: ``notebook_AAA.html`` and ``notebook_BBB.html``
 
@@ -167,7 +167,7 @@ It is possible to set the cell execution timeout (in seconds) with ``--timeout``
 
 .. code-block:: console
 
-    jupyter-run --timeout 60 notebook.ipynb
+    jupyter-runner --timeout 60 notebook.ipynb
 
 Allow error in notebook execution
 ---------------------------------
@@ -176,4 +176,4 @@ Setting ``--allow-errors`` option allows to ignore the error and continue the ex
 
 .. code-block:: console
 
-    jupyter-run --allow-errors notebook.ipynb
+    jupyter-runner --allow-errors notebook.ipynb
