@@ -134,7 +134,7 @@ generated-members=
 bad-functions=map,filter,input
 
 # Good variable names which should always be accepted, separated by a comma
-good-names=i,_,df,qs,ts
+good-names=i,_,df,qs,ts,s3
 
 # Bad variable names which should always be refused, separated by a comma
 bad-names=foo,bar,baz,toto,tutu,tata,wtf

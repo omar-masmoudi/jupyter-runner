@@ -1,10 +1,16 @@
 import logging
 import shlex
 import os
-from os.path import basename, splitext, exists, join, abspath, samefile
+from os.path import basename, splitext, join, samefile
 import subprocess
 
 from .constant import MAP_OUTPUT_EXTENSION
+from .file_handler import (
+    LocalFile,
+    path_exists,
+    remove_path,
+    is_local_path,
+)
 
 
 LOG_FORMAT = '[%(asctime)s %(levelname)s] %(message)s'
@@ -54,7 +60,7 @@ def get_tasks(
             output_name = '%s%s%s' % (splitext(basename(notebook))[0],
                                       file_suffix,
                                       extension)
-            output_file = abspath(join(output_dir, output_name))
+            output_file = join(output_dir, output_name)
             tasks.append(
                 dict(
                     notebook=notebook,
@@ -84,8 +90,7 @@ def execute_notebook(
         timeout,
         allow_errors
 ):
-    """
-    Execute notebook and export output result file.
+    """Execute notebook and export output result file.
 
     :param notebook: Notebook file to execute.
     :param parameters: Dictionary of environment variables.
@@ -97,43 +102,45 @@ def execute_notebook(
     :param allow_errors: Boolean authorizing errors in notebook execution
     """
     in_place = False
-    if exists(output_file):
+    if path_exists(output_file):
         if not overwrite:
             LOGGER.info("Skip existing output file %s", output_file)
             return 0
 
-        if samefile(notebook, output_file):
+        if is_local_path(output_file) and is_local_path(notebook) and \
+                samefile(notebook, output_file):
             LOGGER.debug("Executing notebook %s in place", output_file)
             in_place = True
         else:
             LOGGER.info("Remove existing output file %s", output_file)
-            os.remove(output_file)
+            remove_path(output_file)
 
-    cmd = ['jupyter', 'nbconvert', '--execute',
-           '--output', output_file,
-           '--to', output_format]
-    if output_format not in ['python', 'script']:
-        # Python output does not need execution
-        cmd.append('--ExecutePreprocessor.timeout=%s' % timeout)
-    if debug:
-        cmd.append('--debug')
-    if in_place:
-        cmd.append('--inplace')
-    if allow_errors:
-        cmd.append('--allow-errors')
-    cmd.append(notebook)
-    env = os.environ.update(parameters)
+    with LocalFile(notebook) as _notebook, \
+            LocalFile(output_file, upload=True) as _output_file:
+        cmd = ['jupyter', 'nbconvert', '--execute',
+               '--output', _output_file,
+               '--to', output_format]
+        if output_format not in ['python', 'script']:
+            # Python output does not need execution. In other cases, execute:
+            cmd.append('--ExecutePreprocessor.timeout=%s' % timeout)
+        if debug:
+            cmd.append('--debug')
+        if in_place:
+            cmd.append('--inplace')
+        if allow_errors:
+            cmd.append('--allow-errors')
+        cmd.append(_notebook)
+        env = os.environ.update(parameters)
 
-    LOGGER.info("Executing command: %s with parameters: %s",
-                ' '.join(cmd), str(parameters))
-    ret = subprocess.call(cmd, env=env)
+        LOGGER.info("Executing command: %s with parameters: %s",
+                    ' '.join(cmd), str(parameters))
+        ret = subprocess.call(cmd, env=env)
 
     return ret
 
 
 def _parse_parameters(text):
-    """
-    Return environment dictionary from text.
+    """Return environment dictionary from text.
 
     VAR1=VAL1 VAR2=VAL2 VAR3=VAL3
     returns
@@ -161,8 +168,7 @@ def _parse_parameters(text):
 
 
 def _parse_parameter_file(filename):
-    """
-    Open filename and return the parameters as list of dictionaries.
+    """Open filename and return the parameters as list of dictionaries.
 
     :param filename: Filename containing one set of parameters per line.
     :return: dict of parameters
@@ -170,8 +176,10 @@ def _parse_parameter_file(filename):
     if filename is None:
         # Return list of one parameter
         return [{}]
-    with open(filename) as file_obj:
-        lines = file_obj.readlines()
+
+    with LocalFile(filename) as local_filename:
+        with open(local_filename) as file_obj:
+            lines = file_obj.readlines()
 
     parameters = []
     for line in lines:

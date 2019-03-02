@@ -4,8 +4,8 @@ from setuptools import setup, find_packages
 
 
 def read(filename):
-    with open(join(dirname(__file__), filename)) as fileobj:
-        return fileobj.read()
+    with open(join(dirname(__file__), filename)) as file_obj:
+        return file_obj.read()
 
 
 def get_version(package):
@@ -33,7 +33,9 @@ setup(
         'docopt',
         'jupyter',
         # jupyter nbconvert does not work with tornado >= 6
-        'tornado<6'
+        'tornado<6',
+        'botocore',
+        'boto3',
     ],
     classifiers=[
         'Programming Language :: Python :: 3.5',

@@ -19,8 +19,6 @@ Usage: jupyter-runner [options] <notebook>...
     --version  Display version
 """
 import logging
-import os
-from os.path import exists, isfile
 import multiprocessing
 from inspect import signature
 from shutil import which
@@ -33,6 +31,11 @@ from .execute import (
     execute_notebook,
 )
 from .constant import MAP_OUTPUT_EXTENSION
+from .file_handler import (
+    path_is_readable_file,
+    create_writable_directory,
+    disable_s3_verbose_logging,
+)
 
 
 LOG_FORMAT = '[%(asctime)s %(levelname)s] %(message)s'
@@ -53,20 +56,16 @@ def parse_args(args):
     assert workers >= 1
 
     parameter_file = args['--parameter-file']
-    assert parameter_file is None or isfile(parameter_file)
+    assert parameter_file is None or path_is_readable_file(parameter_file), \
+        '%s is not a readable parameter file' % parameter_file
 
     notebooks = args['<notebook>']
     for notebook in notebooks:
-        assert isfile(notebook)
-        with open(notebook, mode='r'):
-            # Open notebook file to ensure it exists
-            pass
+        assert path_is_readable_file(notebook), \
+            '%s is not a readable notebook file' % notebook
 
     output_dir = args['--output-directory']
-    if not exists(output_dir):
-        os.makedirs(output_dir)
-    assert os.access(output_dir, os.W_OK), \
-        'No write access to output directory: %s' % output_dir
+    create_writable_directory(output_dir)
 
     overwrite = args['--overwrite']
 
@@ -104,6 +103,7 @@ def main():
     debug = args['--debug']
     log_level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(level=log_level, format=LOG_FORMAT)
+    disable_s3_verbose_logging()
 
     # In debug mode, log input options
     log_input_options(args)
