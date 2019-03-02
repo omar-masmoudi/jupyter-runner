@@ -18,7 +18,7 @@ Usage: jupyter-runner [options] <notebook>...
 """
 import logging
 import os
-from os.path import exists
+from os.path import exists, isfile
 import multiprocessing
 from inspect import signature
 
@@ -29,6 +29,8 @@ from .execute import (
     get_tasks,
     execute_notebook,
 )
+from .constant import MAP_OUTPUT_EXTENSION
+
 
 LOG_FORMAT = '[%(asctime)s %(levelname)s] %(message)s'
 LOGGER = logging.getLogger(__file__)
@@ -40,6 +42,49 @@ def log_input_options(args):
         if key in ['--help', '--version']:
             continue
         LOGGER.debug('%s: %s', key, args[key])
+
+
+def parse_args(args):
+    """Return sanitize dict of arguments."""
+    workers = int(args['--workers'])
+    assert workers >= 1
+
+    parameter_file = args['--parameter-file']
+    assert parameter_file is None or isfile(parameter_file)
+
+    notebooks = args['<notebook>']
+    for notebook in notebooks:
+        assert isfile(notebook)
+        with open(notebook, mode='r'):
+            # Open notebook file to ensure it exists
+            pass
+
+    output_dir = args['--output-directory']
+    if not exists(output_dir):
+        os.makedirs(output_dir)
+    assert os.access(output_dir, os.W_OK), \
+        'No write access to output directory: %s' % output_dir
+
+    overwrite = args['--overwrite']
+
+    output_format = args['--format']
+    assert output_format in MAP_OUTPUT_EXTENSION.keys()
+
+    timeout = args['--timeout']
+    assert float(timeout), '--timeout should be a float.'
+
+    allow_errors = args['--allow-errors']
+
+    return dict(
+        parameter_file=parameter_file,
+        notebooks=notebooks,
+        output_dir=output_dir,
+        debug=args['--debug'],
+        overwrite=overwrite,
+        output_format=output_format,
+        timeout=timeout,
+        allow_errors=allow_errors,
+    )
 
 
 def main():
@@ -54,27 +99,19 @@ def main():
     # In debug mode, log input options
     log_input_options(args)
 
-    workers = int(args['--workers'])
-    parameter_file = args['--parameter-file']
-    notebooks = args['<notebook>']
-    output_dir = args['--output-directory']
-    overwrite = args['--overwrite']
-    output_format = args['--format']
-    timeout = args['--timeout']
-    allow_errors = args['--allow-errors']
-    if not exists(output_dir):
-        os.makedirs(output_dir)
+    # Read and return sanitized arguments
+    args = parse_args(args)
 
     # Retrieve individual task to run (product of parameters and notebooks)
     kw_tasks = get_tasks(
-        parameter_file=parameter_file,
-        notebooks=notebooks,
-        output_dir=output_dir,
-        debug=debug,
-        overwrite=overwrite,
-        output_format=output_format,
-        timeout=timeout,
-        allow_errors=allow_errors
+        parameter_file=args['parameter_file'],
+        notebooks=args['notebooks'],
+        output_dir=args['output_dir'],
+        debug=args['debug'],
+        overwrite=args['overwrite'],
+        output_format=args['output_format'],
+        timeout=args['timeout'],
+        allow_errors=args['allow_errors'],
     )
 
     # Flatten list of kwargs to list of args
@@ -84,8 +121,8 @@ def main():
     ]
 
     ret_codes = []
-    if workers > 1:
-        with multiprocessing.Pool(workers) as pool:
+    if args['workers'] > 1:
+        with multiprocessing.Pool(args['workers']) as pool:
             ret_codes = pool.starmap(execute_notebook, tasks, chunksize=1)
     else:
         # Execute without multiprocessing to ease debugging
