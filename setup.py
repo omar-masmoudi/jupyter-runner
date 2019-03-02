@@ -32,6 +32,8 @@ setup(
     install_requires=[
         'docopt',
         'jupyter',
+        # jupyter nbconvert does not work with tornado >= 6
+        'tornado<6'
     ],
     classifiers=[
         'Programming Language :: Python :: 3.5',

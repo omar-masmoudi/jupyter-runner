@@ -9,7 +9,9 @@ Usage: jupyter-runner [options] <notebook>...
     --workers=<workers>  Maximum number of parallel execution  [Default: 1]
     --output-directory=<OUTPUT_DIRECTORY>  Output directory  [Default: .]
     --overwrite  Overwrite output files if they already exist.
-    --format=<FORMAT>  Output format: html, notebook...  [Default: html]
+    --format=<FORMAT>  Output format: html, notebook, script, asciidoc,
+                       markdown, rst, pdf, html, custom, latex, slides
+                      [Default: html]
     --timeout=<TIMEOUT>  Cell execution timeout in seconds.  [Default: -1]
     --allow-errors  Allow errors during notebook execution.
     --debug  Enable debug logs
@@ -21,6 +23,7 @@ import os
 from os.path import exists, isfile
 import multiprocessing
 from inspect import signature
+from shutil import which
 
 from docopt import docopt
 
@@ -70,6 +73,11 @@ def parse_args(args):
     output_format = args['--format']
     assert output_format in MAP_OUTPUT_EXTENSION.keys()
 
+    if output_format == 'pdf':
+        # Ensure necessary tool is installed
+        assert which('xelatex') is not None, \
+            'xelatex not found in PATH, necessary for PDF conversion.'
+
     timeout = args['--timeout']
     assert float(timeout), '--timeout should be a float.'
 
@@ -84,6 +92,7 @@ def parse_args(args):
         output_format=output_format,
         timeout=timeout,
         allow_errors=allow_errors,
+        workers=workers,
     )
 
 
@@ -127,6 +136,6 @@ def main():
     else:
         # Execute without multiprocessing to ease debugging
         for task in tasks:
-            ret_codes.append(execute_notebook(**task))
+            ret_codes.append(execute_notebook(*task))
 
     return max(ret_codes) if ret_codes else 0
