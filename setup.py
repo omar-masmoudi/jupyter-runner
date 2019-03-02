@@ -14,8 +14,8 @@ def get_version(package):
         if line.startswith('__version__ = ')][0].split("'")[1]
 
 
-PACKAGE = 'jupyter_runner'
-VERSION = get_version(PACKAGE)
+PACKAGE = 'jupyter-runner'
+VERSION = get_version('jupyter_runner')
 
 
 setup(
