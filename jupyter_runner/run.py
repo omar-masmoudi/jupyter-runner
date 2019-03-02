@@ -1,5 +1,5 @@
 """
-Usage: run_notebook.py [options] <notebook>...
+Usage: jupyter-runner [options] <notebook>...
 
     --parameter-file=<PARAMETER_FILE>  Optional parameters files containing
     one parameter instance by line, setting the environment.

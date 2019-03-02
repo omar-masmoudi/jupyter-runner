@@ -26,3 +26,4 @@ coverage.xml
 # sqlite
 *.sqlite*
 doc/_build
+.idea
