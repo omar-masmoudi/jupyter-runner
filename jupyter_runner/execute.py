@@ -25,7 +25,8 @@ def get_tasks(
         overwrite,
         output_format,
         timeout,
-        allow_errors
+        allow_errors,
+        hide_input,
 ):
     """Return list of tasks to run based on parameters and notebooks.
 
@@ -40,6 +41,7 @@ def get_tasks(
     :param output_format: String 'html' or 'ipynb'
     :param timeout: Timeout in seconds. -1 means infinite.
     :param allow_errors: Boolean authorizing errors in notebook execution.
+    :param hide_input: If true, hide notebook code input
     :return List of **kwargs to pass to execute_notebook
     """
     # pylint: disable=too-many-locals
@@ -71,6 +73,7 @@ def get_tasks(
                     output_format=output_format,
                     timeout=timeout,
                     allow_errors=allow_errors,
+                    hide_input=hide_input,
                 )
             )
 
@@ -88,7 +91,8 @@ def execute_notebook(
         overwrite,
         output_format,
         timeout,
-        allow_errors
+        allow_errors,
+        hide_input,
 ):
     """Execute notebook and export output result file.
 
@@ -100,6 +104,7 @@ def execute_notebook(
     :param output_format: String 'html' or 'ipynb'
     :param timeout: Timeout in seconds
     :param allow_errors: Boolean authorizing errors in notebook execution
+    :param hide_input: If true, hide notebook code input
     """
     in_place = False
     if path_exists(output_file):
@@ -120,15 +125,23 @@ def execute_notebook(
         cmd = ['jupyter', 'nbconvert', '--execute',
                '--output', _output_file,
                '--to', output_format]
+
         if output_format not in ['python', 'script']:
             # Python output does not need execution. In other cases, execute:
             cmd.append('--ExecutePreprocessor.timeout=%s' % timeout)
+
         if debug:
             cmd.append('--debug')
+
+        if hide_input:
+            cmd.append('--TemplateExporter.exclude_input=True')
+
         if in_place:
             cmd.append('--inplace')
+
         if allow_errors:
             cmd.append('--allow-errors')
+
         cmd.append(_notebook)
         env = os.environ.update(parameters)
 

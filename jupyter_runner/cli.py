@@ -1,5 +1,4 @@
-"""
-Usage: jupyter-runner [options] <notebook>...
+"""Usage: jupyter-runner [options] <notebook>...
 
     --parameter-file=<PARAMETER_FILE>  Optional parameters files containing
     one parameter instance by line, setting the environment.
@@ -14,6 +13,7 @@ Usage: jupyter-runner [options] <notebook>...
                       [Default: html]
     --timeout=<TIMEOUT>  Cell execution timeout in seconds.  [Default: -1]
     --allow-errors  Allow errors during notebook execution.
+    --hide-input  Hide notebook code input in the output file (report mode).
     --debug  Enable debug logs
     --help  Display this help
     --version  Display version
@@ -92,6 +92,7 @@ def parse_args(args):
         timeout=timeout,
         allow_errors=allow_errors,
         workers=workers,
+        hide_input=args['--hide-input'],
     )
 
 
@@ -121,6 +122,7 @@ def main():
         output_format=args['output_format'],
         timeout=args['timeout'],
         allow_errors=args['allow_errors'],
+        hide_input=args['hide_input'],
     )
 
     # Flatten list of kwargs to list of args

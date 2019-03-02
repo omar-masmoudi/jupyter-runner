@@ -114,6 +114,17 @@ Change output directory
 The process create output file ``results/notebook.html`.
 ``results`` directory is created if it does not pre-exist.
 
+Use S3 inputs/outputs
+---------------------
+
+.. code-block:: console
+
+    jupyter-runner --output-directory=s3://bucket/results/ s3://bucket/notebooks/notebook.ipynb
+
+The process create output file ``s3://bucket/results/notebook.html`` based on a notebook stored from S3.
+
+Files are downloaded to a local temporary only available to the current user and removed at the end or in case of exceptions.
+
 Overwrite existing outputs
 --------------------------
 By default, jupyter-runner skip the run when output file(s) already exists.
@@ -142,6 +153,19 @@ https://nbconvert.readthedocs.io/en/latest/usage.html#default-output-format-html
 .. code-block:: console
 
     jupyter-runner --format notebook --output-directory results notebook.ipynb
+
+
+Report mode (hide input)
+------------------------
+
+.. code-block:: console
+
+    jupyter-runner --hide-input notebook.ipynb
+
+The process create output file ``notebook.html`` without any input cells.
+Markdown and output cells are kept, but input code cells do not show.
+This feature is handy to create user-friendly reports.
+
 
 Change output file suffix
 -------------------------

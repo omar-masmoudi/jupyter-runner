@@ -89,9 +89,7 @@ def remove_path(path):
         client.delete_object(Bucket=url.netloc, Key=url.path[1:])
 
     if is_local_path(path):
-        return os.remove(path)
-
-    raise ValueError("Invalid path %s" % path)
+        os.remove(path)
 
 
 def path_exists(path):
