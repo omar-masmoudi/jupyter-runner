@@ -10,7 +10,7 @@ Usage: jupyter-runner [options] <notebook>...
     --output-directory=<OUTPUT_DIRECTORY>  Output directory  [Default: .]
     --overwrite  Overwrite output files if they already exist.
     --format=<FORMAT>  Output format: html, notebook, script, asciidoc,
-                       markdown, rst, pdf, html, custom, latex, slides
+                       markdown, rst, pdf, html, latex, slides
                       [Default: html]
     --timeout=<TIMEOUT>  Cell execution timeout in seconds.  [Default: -1]
     --allow-errors  Allow errors during notebook execution.

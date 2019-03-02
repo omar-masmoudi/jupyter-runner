@@ -4,6 +4,8 @@ import os
 from os.path import basename, splitext, exists, join, abspath, samefile
 import subprocess
 
+from .constant import MAP_OUTPUT_EXTENSION
+
 
 LOG_FORMAT = '[%(asctime)s %(levelname)s] %(message)s'
 LOGGER = logging.getLogger(__file__)
@@ -46,8 +48,9 @@ def get_tasks(
                 file_suffix = '_%s' % params['JUPYTER_OUTPUT_SUFFIX']
             else:
                 file_suffix = '_%d' % (param_id + 1)
-            extension = '.%s' % output_format \
-                if output_format != 'notebook' else '.ipynb'
+            extension = MAP_OUTPUT_EXTENSION[output_format]
+            if extension:
+                extension = '.%s' % extension
             output_name = '%s%s%s' % (splitext(basename(notebook))[0],
                                       file_suffix,
                                       extension)
@@ -107,9 +110,11 @@ def execute_notebook(
             os.remove(output_file)
 
     cmd = ['jupyter', 'nbconvert', '--execute',
-           '--ExecutePreprocessor.timeout=%s' % timeout,
            '--output', output_file,
            '--to', output_format]
+    if output_format not in ['python', 'script']:
+        # Python output does not need execution
+        cmd.append('--ExecutePreprocessor.timeout=%s' % timeout)
     if debug:
         cmd.append('--debug')
     if in_place:
