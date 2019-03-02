@@ -20,6 +20,7 @@ import logging
 import os
 from os.path import exists
 import multiprocessing
+from inspect import signature
 
 from docopt import docopt
 
@@ -64,7 +65,8 @@ def main():
     if not exists(output_dir):
         os.makedirs(output_dir)
 
-    tasks = get_tasks(
+    # Retrieve individual task to run (product of parameters and notebooks)
+    kw_tasks = get_tasks(
         parameter_file=parameter_file,
         notebooks=notebooks,
         output_dir=output_dir,
@@ -74,6 +76,13 @@ def main():
         timeout=timeout,
         allow_errors=allow_errors
     )
+
+    # Flatten list of kwargs to list of args
+    tasks = [
+        [kw_task[arg] for arg in signature(execute_notebook).parameters]
+        for kw_task in kw_tasks
+    ]
+
     ret_codes = []
     if workers > 1:
         with multiprocessing.Pool(workers) as pool:
@@ -81,6 +90,6 @@ def main():
     else:
         # Execute without multiprocessing to ease debugging
         for task in tasks:
-            ret_codes.append(execute_notebook(*task))
+            ret_codes.append(execute_notebook(**task))
 
     return max(ret_codes) if ret_codes else 0

@@ -55,7 +55,7 @@ def get_tasks(
             tasks.append(
                 dict(
                     notebook=notebook,
-                    params=params,
+                    parameters=params,
                     output_file=output_file,
                     debug=debug,
                     overwrite=overwrite,
@@ -72,7 +72,7 @@ def get_tasks(
 
 
 def execute_notebook(
-        notebook_file,
+        notebook,
         parameters,
         output_file,
         debug,
@@ -84,7 +84,7 @@ def execute_notebook(
     """
     Execute notebook and export output result file.
 
-    :param notebook_file: Notebook file to execute.
+    :param notebook: Notebook file to execute.
     :param parameters: Dictionary of environment variables.
     :param output_file: Output HTML file path.
     :param debug: Boolean enabling debug notebook execution.
@@ -99,7 +99,7 @@ def execute_notebook(
             LOGGER.info("Skip existing output file %s", output_file)
             return 0
 
-        if samefile(notebook_file, output_file):
+        if samefile(notebook, output_file):
             LOGGER.debug("Executing notebook %s in place", output_file)
             in_place = True
         else:
@@ -116,7 +116,7 @@ def execute_notebook(
         cmd.append('--inplace')
     if allow_errors:
         cmd.append('--allow-errors')
-    cmd.append(notebook_file)
+    cmd.append(notebook)
     env = os.environ.update(parameters)
 
     LOGGER.info("Executing command: %s with parameters: %s",
