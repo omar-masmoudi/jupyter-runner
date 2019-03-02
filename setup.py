@@ -10,7 +10,7 @@ def read(filename):
 
 def get_version(package):
     return [
-        line for line in read('{}/__init__.py'.format(PACKAGE)).splitlines()
+        line for line in read('{}/__init__.py'.format(package)).splitlines()
         if line.startswith('__version__ = ')][0].split("'")[1]
 
 
@@ -27,9 +27,12 @@ setup(
     packages=find_packages(),
     entry_points="""
         [console_scripts]
-        jupyter-runner = jupyter_runner.run:main
+        jupyter-runner = jupyter_runner.cli:main
     """,
-    install_requires=['docopt', 'jupyter'],
+    install_requires=[
+        'docopt',
+        'jupyter',
+    ],
     classifiers=[
         'Programming Language :: Python :: 3.5',
     ],
