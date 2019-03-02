@@ -1,0 +1,28 @@
+# Python
+*.pyc
+.eggs/
+*.egg-info
+dist/
+# vim
+*.swp
+*.swo
+# Testing
+.cache/
+junit.xml
+.tox/
+ci_env
+cov.xml
+coverage.xml
+clover.xml
+# virtualenv
+.env/
+environment.rc
+# coverage.py
+.coverage
+htmlcov/
+coverage.xml
+# OSX
+.DS_Store
+# sqlite
+*.sqlite*
+doc/_build
