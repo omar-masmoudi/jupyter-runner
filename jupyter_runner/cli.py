@@ -14,6 +14,23 @@
     --timeout=<TIMEOUT>  Cell execution timeout in seconds.  [Default: -1]
     --allow-errors  Allow errors during notebook execution.
     --hide-input  Hide notebook code input in the output file (report mode).
+    --mail-to=<addrs>  List of email addresses to send output to
+                       (comma-separated).
+                       Example: alice@example.com,bob@example.com
+    --mail-cc=<addrs>  List of email addresses to send output in cc
+                       (comma-separated).
+                       Example: alice@example.com,bob@example.com
+    --mail-bcc=<addrs>  List of email addresses to send output in bcc
+                        (comma-separated).
+                        Example: alice@example.com,bob@example.com
+    --mail-from=<addrs>  Mail sender address. [Default: jupyter-runner]
+    --mail-subject=<subject>  Mail subject. [Default: jupyter-runner report]
+    --mail-message=<msg>  Mail message if not html inline.
+                    [Default: Please check attached reports.]
+    --mail-html-inline  Use inline HTML e-mail in addition to attachments.
+    --mail-do-not-compress  Do not compress attachments inside a zip file.
+    --mail-host=<host>  Mail server hostname. [Default: localhost]
+    --mail-port=<port>  Mail server port. [Default: 25]
     --debug  Enable debug logs
     --help  Display this help
     --version  Display version
@@ -35,6 +52,10 @@ from .file_handler import (
     path_is_readable_file,
     create_writable_directory,
     disable_s3_verbose_logging,
+)
+from .mail import (
+    MailConfiguration,
+    send_email,
 )
 
 
@@ -82,6 +103,9 @@ def parse_args(args):
 
     allow_errors = args['--allow-errors']
 
+    # Parse all e-mails arguments
+    mail_configuration = MailConfiguration(args)
+
     return dict(
         parameter_file=parameter_file,
         notebooks=notebooks,
@@ -93,6 +117,7 @@ def parse_args(args):
         allow_errors=allow_errors,
         workers=workers,
         hide_input=args['--hide-input'],
+        mail_configuration=mail_configuration,
     )
 
 
@@ -139,5 +164,9 @@ def main():
         # Execute without multiprocessing to ease debugging
         for task in tasks:
             ret_codes.append(execute_notebook(*task))
+
+    if args['mail_configuration'].send_mail:
+        filenames = [kw_task['output_file'] for kw_task in kw_tasks]
+        send_email(filenames, args['mail_configuration'])
 
     return max(ret_codes) if ret_codes else 0

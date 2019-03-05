@@ -201,3 +201,13 @@ Setting ``--allow-errors`` option allows to ignore the error and continue the ex
 .. code-block:: console
 
     jupyter-runner --allow-errors notebook.ipynb
+
+
+Send e-mail containing output
+-----------------------------
+By default, errors in notebook execution stops its execution and return an error code.
+Setting ``--allow-errors`` option allows to ignore the error and continue the execution, returning a valid code.
+
+.. code-block:: console
+
+    jupyter-runner --allow-errors notebook.ipynb
