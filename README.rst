@@ -205,9 +205,11 @@ Setting ``--allow-errors`` option allows to ignore the error and continue the ex
 
 Send e-mail containing output
 -----------------------------
-By default, errors in notebook execution stops its execution and return an error code.
-Setting ``--allow-errors`` option allows to ignore the error and continue the execution, returning a valid code.
+You can send an e-mail containing attachments using ``--mail-to`` option.
+Other mail options available (subject, from, cc, bcc...) as well as attaching
+each output in separate file or regrouped together within a LZMA compressed
+zip (default).
 
 .. code-block:: console
 
-    jupyter-runner --allow-errors notebook.ipynb
+    jupyter-runner notebook.ipynb --mail-to=me@example.com
