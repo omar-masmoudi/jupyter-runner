@@ -175,7 +175,7 @@ class LocalFile():
         """
         self.tmpdir = None
         self.path = path
-        self.filename = path
+        self.filename = os.path.realpath(path)
         self.upload = False
 
         if is_s3_url(path):
