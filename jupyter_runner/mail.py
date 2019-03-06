@@ -86,6 +86,7 @@ def _prepare_attachments(msg,
             if not mail_configuration.mail_do_not_compress:
                 # Prepare zip archive
                 zip_file.write(local_filename,
+                               bname,
                                compress_type=zipfile.ZIP_LZMA)
 
             # After the file is closed, add the attachment
@@ -93,6 +94,7 @@ def _prepare_attachments(msg,
                 # Don't use the zip archive and attach single files
                 part['Content-Disposition'] = \
                     'attachment; filename="%s"' % bname
+                LOGGER.info("Attaching %s", bname)
                 msg.attach(part)
 
 
@@ -122,18 +124,17 @@ def send_email(
     # Construct mail attachments and inline HTML content
     with tempfile.TemporaryDirectory() as zip_dir:
         zip_name = 'attachments.zip'
-        zip_file = zipfile.ZipFile(
-            os.path.join(zip_dir, zip_name),
-            mode='w',
-            compression=zipfile.ZIP_LZMA,
-        )
-
-        # loop through attachments
-        _prepare_attachments(msg=msg,
-                             filenames=filenames,
-                             mail_configuration=mail_configuration,
-                             zip_file=zip_file,
-                             html_content=html_content)
+        with zipfile.ZipFile(
+                os.path.join(zip_dir, zip_name),
+                mode='w',
+                compression=zipfile.ZIP_LZMA,
+        ) as zip_file:
+            # loop through attachments
+            _prepare_attachments(msg=msg,
+                                 filenames=filenames,
+                                 mail_configuration=mail_configuration,
+                                 zip_file=zip_file,
+                                 html_content=html_content)
 
         if not mail_configuration.mail_do_not_compress:
             # Attach the zip archive
@@ -146,18 +147,22 @@ def send_email(
                 )
             part['Content-Disposition'] = \
                 'attachment; filename="%s"' % zip_name
+            LOGGER.info("Attaching %s", zip_name)
             msg.attach(part)
 
-    if html_content and mail_configuration.mail_html_inline:
-        # Add HTML text by joining all html files
-        part = MIMEText('<hr>'.join(html_content), 'html')
-        msg.attach(part)
-    else:
-        part = MIMEText(mail_configuration.mail_message, 'plain')
-        msg.attach(part)
+        if html_content and mail_configuration.mail_html_inline:
+            # Add HTML text by joining all html files
+            part = MIMEText('<hr>'.join(html_content), 'html')
+            LOGGER.info("Attaching HTML inline content")
+            msg.attach(part)
+        else:
+            part = MIMEText(mail_configuration.mail_message, 'plain')
+            LOGGER.info("Attaching plain text message: %s",
+                        mail_configuration.mail_message)
+            msg.attach(part)
 
-    with smtplib.SMTP(host=mail_configuration.mail_host,
-                      port=mail_configuration.mail_port) as smtp_con:
-        LOGGER.info("Sending e-mail with report attached.")
-        LOGGER.debug("Mail message: %s", msg)
-        smtp_con.send_message(msg)
+        with smtplib.SMTP(host=mail_configuration.mail_host,
+                          port=mail_configuration.mail_port) as smtp_con:
+            LOGGER.info("Sending e-mail with report attached.")
+            LOGGER.debug("Mail message: %s", msg)
+            smtp_con.send_message(msg)
