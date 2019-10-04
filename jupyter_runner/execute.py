@@ -3,6 +3,8 @@ import shlex
 import os
 from os.path import basename, splitext, join, samefile
 import subprocess
+import multiprocessing
+import time
 
 from .constant import MAP_OUTPUT_EXTENSION
 from .file_handler import (
@@ -16,6 +18,7 @@ from .file_handler import (
 LOG_FORMAT = '[%(asctime)s %(levelname)s] %(message)s'
 LOGGER = logging.getLogger(__file__)
 
+WAIT_LOCK = multiprocessing.Lock()
 
 def get_tasks(
         parameter_file,
@@ -27,6 +30,7 @@ def get_tasks(
         timeout,
         allow_errors,
         hide_input,
+        locked_wait,
 ):
     """Return list of tasks to run based on parameters and notebooks.
 
@@ -42,6 +46,8 @@ def get_tasks(
     :param timeout: Timeout in seconds. -1 means infinite.
     :param allow_errors: Boolean authorizing errors in notebook execution.
     :param hide_input: If true, hide notebook code input
+    :param locked_wait: Time in seconds to wait to prevent multiprocessing
+                        execution.
     :return List of **kwargs to pass to execute_notebook
     """
     # pylint: disable=too-many-locals
@@ -74,6 +80,7 @@ def get_tasks(
                     timeout=timeout,
                     allow_errors=allow_errors,
                     hide_input=hide_input,
+                    locked_wait=locked_wait,
                 )
             )
 
@@ -93,6 +100,7 @@ def execute_notebook(
         timeout,
         allow_errors,
         hide_input,
+        locked_wait,
 ):
     """Execute notebook and export output result file.
 
@@ -105,6 +113,8 @@ def execute_notebook(
     :param timeout: Timeout in seconds
     :param allow_errors: Boolean authorizing errors in notebook execution
     :param hide_input: If true, hide notebook code input
+    :param locked_wait: Time in seconds to wait to prevent multiprocessing
+                        execution.
     """
     in_place = False
     if path_exists(output_file):
@@ -144,6 +154,11 @@ def execute_notebook(
 
         cmd.append(_notebook)
         env = os.environ.update(parameters)
+
+        if locked_wait > 0:
+            WAIT_LOCK.acquire()
+            time.sleep(locked_wait)
+            WAIT_LOCK.release()
 
         LOGGER.info("Executing command: %s with parameters: %s",
                     ' '.join(cmd), str(parameters))

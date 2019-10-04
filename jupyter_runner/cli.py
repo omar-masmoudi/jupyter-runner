@@ -137,6 +137,14 @@ def main():
     # Read and return sanitized arguments
     args = parse_args(args)
 
+    # if multiple workers, ensure subcommand is not launched
+    # at the same time to prevent ZMQ error on binding ports. 
+    # Waiting for 5 seconds works in practice.
+    if args['workers'] > 1:
+        locked_wait = 5
+    else:
+        locked_wait = 0
+
     # Retrieve individual task to run (product of parameters and notebooks)
     kw_tasks = get_tasks(
         parameter_file=args['parameter_file'],
@@ -148,6 +156,7 @@ def main():
         timeout=args['timeout'],
         allow_errors=args['allow_errors'],
         hide_input=args['hide_input'],
+        locked_wait=locked_wait,
     )
 
     # Flatten list of kwargs to list of args
