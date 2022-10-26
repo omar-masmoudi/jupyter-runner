@@ -1,2 +1,2 @@
 """jupyter-runner module."""
-__version__ = '0.6.0'
+__version__ = '2022.10.26.1'
